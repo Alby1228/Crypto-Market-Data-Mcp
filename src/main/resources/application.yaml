@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: Crypto-Market-Data-MCP
+  ai:
+    mcp:
+      server:
+        enabled: true
+        name: crypto-market-data
+        version: 1.0.0
+        sse-endpoint: /api/v1/sse
+        sse-message-endpoint: /api/v1/mcp
+        capabilities:
+          tool: true
+
+binance:
+  spot:
+    base-url: https://api.binance.com
+    max-weight-per-minute: 1200
+    request-timeout-ms: 10000
+server:
+  port: 8082
