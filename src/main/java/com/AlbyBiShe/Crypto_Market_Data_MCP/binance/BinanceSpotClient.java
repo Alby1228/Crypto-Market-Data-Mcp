@@ -1,8 +1,8 @@
 package com.AlbyBiShe.Crypto_Market_Data_MCP.binance;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -14,19 +14,22 @@ import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+
+@Slf4j
 @Component
 public class BinanceSpotClient {
 
-    private final String baseUrl;
-    private final HttpClient httpClient;
+    @Value("${binance.spot.base-url}")
+    private String baseUrl;
+
+    private HttpClient httpClient;
     private final WeightRateLimiter rateLimiter;
 
     public BinanceSpotClient(
-            @Value("${binance.spot.base-url:https://api.binance.com}") String baseUrl,
             @Value("${binance.spot.max-weight-per-minute:1200}") int maxWeightPerMinute,
             @Value("${binance.spot.request-timeout-ms:10000}") long requestTimeoutMs
     ) {
-        this.baseUrl = baseUrl;
+
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofMillis(requestTimeoutMs))
                 .build();
@@ -72,8 +75,9 @@ public class BinanceSpotClient {
 
     private String get(String path, Map<String, String> params, int weight) {
         rateLimiter.acquire(weight);
+        String url = baseUrl + path + "?" + buildQuery(params);
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + path + "?" + buildQuery(params)))
+                .uri(URI.create(url))
                 .GET()
                 .build();
         try {
@@ -83,9 +87,11 @@ public class BinanceSpotClient {
             }
             return response.body();
         } catch (IOException ex) {
+            log.error("Binance API request failed. url={}", url, ex);
             throw new RuntimeException("Binance API request failed", ex);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
+            log.error("Binance API request interrupted. url={}", url, ex);
             throw new RuntimeException("Binance API request interrupted", ex);
         }
     }

@@ -17,8 +17,8 @@ public class CryptoMarketDataMcpApplication {
 	}
 
     @Bean
-    public ToolCallbackProvider marketDataTool() {
-        return MethodToolCallbackProvider.builder().toolObjects(new MarketDataTool()).build();
+    public ToolCallbackProvider toolCallbackProvider(MarketDataTool marketDataTool) {
+        return MethodToolCallbackProvider.builder().toolObjects(marketDataTool).build();
     }
 
 }
